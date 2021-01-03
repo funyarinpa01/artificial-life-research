@@ -1,0 +1,18 @@
+Performing C SOURCE FILE Test MSan_FLAG_DETECTED failed with the following output:
+Change Dir: /mnt/c/users/diana/documents/fungera_project/NFUNGERA_Copy/inc/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_bac69/fast && /usr/bin/make  -f CMakeFiles/cmTC_bac69.dir/build.make CMakeFiles/cmTC_bac69.dir/build
+make[1]: Entering directory '/mnt/c/users/diana/documents/fungera_project/NFUNGERA_Copy/inc/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_bac69.dir/src.c.o
+/usr/bin/cc   -DMSan_FLAG_DETECTED -g -fsanitize=memory   -g -fsanitize=memory -o CMakeFiles/cmTC_bac69.dir/src.c.o -c /mnt/c/users/diana/documents/fungera_project/NFUNGERA_Copy/inc/build/CMakeFiles/CMakeTmp/src.c
+cc: error: unrecognized argument to -fsanitize= option: 'memory'
+cc: error: unrecognized argument to -fsanitize= option: 'memory'
+CMakeFiles/cmTC_bac69.dir/build.make:84: recipe for target 'CMakeFiles/cmTC_bac69.dir/src.c.o' failed
+make[1]: *** [CMakeFiles/cmTC_bac69.dir/src.c.o] Error 1
+make[1]: Leaving directory '/mnt/c/users/diana/documents/fungera_project/NFUNGERA_Copy/inc/build/CMakeFiles/CMakeTmp'
+Makefile:140: recipe for target 'cmTC_bac69/fast' failed
+make: *** [cmTC_bac69/fast] Error 2
+
+
+Source file was:
+int main(void) { return 0; }

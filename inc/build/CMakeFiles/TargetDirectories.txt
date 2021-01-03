@@ -1,0 +1,3 @@
+/mnt/c/users/diana/documents/fungera_project/NFUNGERA_Copy/inc/build/CMakeFiles/rebuild_cache.dir
+/mnt/c/users/diana/documents/fungera_project/NFUNGERA_Copy/inc/build/CMakeFiles/program.dir
+/mnt/c/users/diana/documents/fungera_project/NFUNGERA_Copy/inc/build/CMakeFiles/edit_cache.dir

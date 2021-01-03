@@ -1,0 +1,52 @@
+cmake_minimum_required(VERSION 3.15)
+
+set(PROJECT_NAME program)
+project(${PROJECT_NAME} C)
+
+# Options
+option(WARNINGS_AS_ERRORS "Treat compiler warnings as errors." ON)
+option(ENABLE_SANITIZERS "Use sanitizers to detect errors." ON)
+option(ENABLE_CONAN "Use Conan as a package manager." OFF)
+option(ENABLE_PVS_STUDIO "Check using command-line PVS-Studio." OFF)
+# ENABLE_SANITIZERS is the option for the test builds! Do not use it in the production builds.
+
+## PVS Studio
+if(ENABLE_PVS_STUDIO)
+include(PVS-Studio.cmake)
+SET(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+endif()
+
+# Warnings
+if (MSVC)
+    # warning level 4 and all warnings as errors
+    add_compile_options(/W4 /WX)
+else()
+    # lots of warnings and all warnings as errors
+    add_compile_options(-Wall -Wextra -pedantic -Werror -Werror=vla)
+endif()
+
+# Include fixed CMake configuration
+include(cmake/config.cmake)
+
+set(program_SRC ./fungera.c)
+add_executable(program ${program_SRC})
+target_include_directories(program PRIVATE ./)
+
+set_target_properties(program
+  PROPERTIES
+  ARCHIVE_OUTPUT_DIRECTORY ../
+  LIBRARY_OUTPUT_DIRECTORY ../
+  RUNTIME_OUTPUT_DIRECTORY ../
+)
+
+# Sanitizers configuration
+if (ENABLE_SANITIZERS)
+    set(SANITIZE_UNDEFINED ON)
+    # Only one of Memory, Address, or Thread sanitizers is applicable at the time
+    set(SANITIZE_MEMORY ON)
+    #    set(SANITIZE_ADDRESS ON)
+    #    set(SANITIZE_THREAD ON)
+    find_package(Sanitizers)
+
+    # CMake targets to which apply sanitizers
+endif()

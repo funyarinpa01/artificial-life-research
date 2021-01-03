@@ -1,0 +1,16 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/mnt/c/users/diana/documents/fungera_project/NFUNGERA_Copy/inc/fungera.c
+stdlib.h
+-
+stdint.h
+-
+stdio.h
+-
+
