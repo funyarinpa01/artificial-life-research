@@ -6,7 +6,7 @@
 
 #IncludeRegexTransform: 
 
-/mnt/c/users/diana/documents/fungera_project/NFUNGERA_Copy/inc/fungera.c
+/mnt/c/users/diana/documents/fungera_project/nfungera_copy/inc/fungera.c
 stdlib.h
 -
 stdint.h

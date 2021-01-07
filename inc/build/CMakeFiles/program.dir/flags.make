@@ -4,7 +4,7 @@
 # compile C with /usr/bin/cc
 C_DEFINES = 
 
-C_INCLUDES = -I/mnt/c/users/diana/documents/fungera_project/NFUNGERA_Copy/inc/.
+C_INCLUDES = -I/mnt/c/users/diana/documents/fungera_project/nfungera_copy/inc/.
 
 C_FLAGS = -O3 -DNDEBUG -Wall -Wextra -pedantic -Werror -Werror=vla -Wpedantic
 
