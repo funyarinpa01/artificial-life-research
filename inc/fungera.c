@@ -1,8 +1,9 @@
 #include <stdlib.h> 
 #include <stdint.h>
 #include <stdio.h>
+#include <time.h>
 
-int MAX_N_OF_ERRORS = 3000;
+int MAX_N_OF_ERRORS = 5000;
 int MAX_ITERS_WITHOUT_REPRODUCTION = 100000;
 int TEMPLATE[1024];
 int STACK_SIZE = 8;
@@ -57,7 +58,7 @@ typedef struct {
 	organism *organisms;
 } queue;
 
-int kill_organism(organism, array*);
+int kill_organism(organism org, array* memory);
 
 void queue_create(queue* q) {
 	q->top = 0;
@@ -101,8 +102,7 @@ void update_queue(queue* q, array* memory) {
 	}
 	for (int i = end; i < q->top; i++) {
 		if (!(kill_organism(q->organisms[i], memory) == 0)) {
-			//printf("FATAL failed to kill!!!!\n");
-			continue;
+			return;
 		}
 	}
 	q->top = end;
@@ -124,7 +124,8 @@ int append_queue(queue* q, organism* org) {
 	}
 	q->organisms[q->top] = *org;
 	q->top++;
-	print_queue(q);
+	//print_queue(q);
+	printf("Q %d %d %d %d %d %d|", org->id, org->parent_id, org->startx, org->starty, org->width, org->height);
 	return 0;
 }
 
@@ -369,7 +370,7 @@ int memory_allocate(array* memory, int x, int y, int w, int h) {
 			memory->content[i*memory->size+j] |= 1;
 		}
 	}
-	//printf("M L %d %d %d %d\n", x, y, w, h);
+	printf("ML %d %d %d %d|", x, y, w, h);
 	return 0;
 }
 
@@ -386,7 +387,7 @@ int memory_activate(array* memory, int x, int y, int w, int h) {
 			memory->content[i*memory->size+j] |= 2;
 		}
 	}
-	//printf("M A %d %d %d %d\n", x, y, w, h);
+	printf("MA %d %d %d %d|", x, y, w, h);
 	return 0;
 }
 
@@ -399,7 +400,7 @@ int memory_free(array* memory, int x, int y, int w, int h) {
 			memory->content[i*memory->size+j] ^= 3 & memory->content[i*memory->size+j];
 		}
 	}
-	//printf("M F %d %d %d %d\n", x, y, w, h);
+	printf("MF %d %d %d %d|", x, y, w, h);
 	return 0;
 }
 
@@ -447,7 +448,7 @@ int array_set(array* arr, int x, int y, char c) {
 	}
 	int index = x*arr->size + y;
 	arr->content[index] = c;
-	//printf("M S %d %d %d %d\n", x, y, command_code, cell_type);
+	printf("MS %d %d %d %d|", x, y, command_code, cell_type);
 	return 0;
 }
 
@@ -461,7 +462,7 @@ int array_set_command(array* arr, int x, int y, int code) {
 	}
 	int index = x*arr->size + y;
 	arr->content[index] = (code << 2) + (3 & arr->content[index]);
-	//printf("M W %d %d %c\n", x, y, commands[code]);
+	printf("MW %d %d %c|", x, y, commands[code]);
 	return 0;
 }
 
@@ -470,7 +471,7 @@ int kill_organism(organism org, array* memory) {
 	if (!(memory_free(memory, org.startx, org.starty, org.width, org.height) == 0)) {
 		return -1;
 	}
-	//printf("KILL %d\n", org.id);
+	printf("K %d\n", org.id);
 	return 0;
 }
 
@@ -913,7 +914,9 @@ int split_child(array* memory, organism* org, queue* q) {
 		//printf("empty child\n");
 		return 0;
 	}
-	memory_activate(memory, org->childx, org->childy, org->child_width, org->child_height);
+	if (!(memory_activate(memory, org->childx, org->childy, org->child_width, org->child_height) == 0)) {
+		return -1;
+	}
 	organism neworg;
 	organism_create(&neworg, org->childx, org->childy, org->child_width, org->child_height, org->id);
 	append_queue(q, &neworg);
@@ -923,6 +926,8 @@ int split_child(array* memory, organism* org, queue* q) {
 	org->child_height = 0;
     org->childx = 0;
 	org->childy = 0;
+	org->reproduction_cycle = 0;
+	//printf("organism %d reproduced\n", org->id);
 	return 0;
 }
 
@@ -964,6 +969,7 @@ int operation(array* memory, organism* org, queue* q, int command) {
 
 
 int life(array* memory, organism* org, queue* q) {
+	org->reproduction_cycle++;
 	move(org);
 	if ((org->ptrx < 0) || (org->ptrx >= memory->size)) {
 		return -1;
@@ -979,7 +985,10 @@ int life(array* memory, organism* org, queue* q) {
 		//printf("*********************ERROR DETECTED\n");
 		org->errors += 1;
 	}
-	//printf("O %d %d %d %c %d\n", org->id, org->ptrx, org->ptry, command, code==0);
+	if (org->reproduction_cycle > MAX_ITERS_WITHOUT_REPRODUCTION) {
+		org->errors += MAX_N_OF_ERRORS;
+	}
+	printf("O %d %d %d %c %d|", org->id, org->ptrx, org->ptry, command, code==0);
 	return 0;
 }
 
@@ -1034,21 +1043,22 @@ int radiation(array* memory) {
 		return -1;
 	}
 	//printf("successfully spawned command %c at (%d %d)\n", commands[z], x, y);
-	//printf("R\n");
+	//printf("R %d %d %d|", x, y, z);
 	return 0;
 }
 
 
 int main() {
-	if (!freopen("llllog.txt", "w", stderr)) {
-		return -1;
-	}
+	//if (!freopen("log.txt", "w", stderr)) {
+	//	return -1;
+	//}
+	srand(time(0));
 	array arr;
-	array_create(&arr, 70);
-	write_chunck_from_file(&arr, 1, 1, 23, 17, "initial.gen");
+	array_create(&arr, 100);
+	write_chunck_from_file(&arr, 24, 18, 23, 17, "initial.gen");
 
 	organism org;
-	organism_create(&org, 1, 1, 23, 17, 0);
+	organism_create(&org, 24, 18, 23, 17, 0);
 
 	queue q;
 	queue_create(&q);
@@ -1057,7 +1067,7 @@ int main() {
 	int n;
 
 	//organism O;
-	for (int i = 0; i < 50000000; i++) {
+	for (int i = 0; ((i < 5000000) && !(q.top == 0)); i++) {
 		n = q.top;
 		top = n-1;
 		////printf("\n\nITERATION %d\n", i);
@@ -1071,22 +1081,25 @@ int main() {
 			}
 			top--;
 		}
-		if (i%500 == 0) {
+		if (i%1000 == 0) {
 			radiation(&arr);
 		}
 		update_queue(&q, &arr);
+		printf("\n");
 		////printf("queue is\n");
 		//print_queue(&q);
-		if ((i%20000 == 0) || (n != q.top)) {
-			printf("iteration %d, %d active organisms\n", i, q.top);
+		/*
+		if ((i%100000 == 0) || (n != q.top)) {
+			//printf("iteration %d, %d active organisms\n", i, q.top);
 			print_array(&arr);
 			//	//printf("\n");
 			print_array_mask(&arr);
-		}
+		}*/
     }
 	print_array(&arr);
 	//printf("\n");
 	print_array_mask(&arr);
+	printf("Total number of organisms %d", id);
 	free(arr.content);
 	free(q.organisms);
 	//fclose(stdout);
