@@ -1054,11 +1054,11 @@ int main() {
 	//}
 	srand(time(0));
 	array arr;
-	array_create(&arr, 100);
+	array_create(&arr, 256);
 	write_chunck_from_file(&arr, 24, 18, 23, 17, "initial.gen");
 
 	organism org;
-	organism_create(&org, 24, 18, 23, 17, 0);
+	organism_create(&org, 24, 18, 17, 23, 0);
 
 	queue q;
 	queue_create(&q);
@@ -1067,7 +1067,7 @@ int main() {
 	int n;
 
 	//organism O;
-	for (int i = 0; ((i < 5000000) && !(q.top == 0)); i++) {
+	for (int i = 0; ((i < 1000000) && (q.top != 0)); i++) {
 		n = q.top;
 		top = n-1;
 		////printf("\n\nITERATION %d\n", i);
