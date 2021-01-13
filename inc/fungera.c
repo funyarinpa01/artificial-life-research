@@ -667,10 +667,10 @@ int find_template(array* memory, organism* org) {
 	printf("length of template 1: %d %i\n", maxlen, maxlen);
 	int template[25];// = calloc(maxlen, sizeof(int));
 	printf("length of template 2: %d %i\n", maxlen, maxlen);
-	if (!template) {
-		printf("couldn't allocate memory to store template\n");
-		return -1;
-	}
+//	if (!template) {
+//		printf("couldn't allocate memory to store template\n");
+//		return -1;
+//	}
 
 	x += org->deltax;
 	y += org->deltay;
@@ -955,7 +955,7 @@ int main() {
 	int top;
 	int n;
 
-	organism O;
+//	organism O;
 	for (int i = 0; i < 200000; i++) {
 		top = 0;
 		n = q.top;

@@ -1,0 +1,72 @@
+* {
+    padding: 0px;
+    margin: 0px;
+    box-sizing: border-box;
+}
+
+body.modal-open {
+    overflow: hidden;
+    position: fixed;
+}
+
+#simulation {
+    position: relative;
+    width: 2000px;
+    /* z-index: -1; */
+}
+
+
+.row {
+    width: 2000px;
+    height:20px;
+}
+
+.cell {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    padding: 0px;
+    text-align: center;
+    font-size:10px;
+    font-weight: bold;
+    /* transform: scale(.5, .5); */
+}
+
+.markedBlue {
+    background-color: blue;
+}
+
+.markedRed {
+    background-color: red;
+}
+
+#svgContainer {
+    position: absolute;
+    top: 0px;
+    pointer-events: none;
+}
+
+.line {
+    z-index: 10;
+    visibility: visible;
+}
+
+#sliderIteration {
+    width: 100%;
+    cursor: pointer;
+}
+
+.fadein {
+    max-height: 10px;
+    visibility: hidden;
+}
+
+#organismsInfoContainer {
+    border: 1px rgb(180, 162, 162) solid;
+    padding: 10px;
+    margin: 10px 0px;
+}
+
+.popover {
+    white-space: pre-line;    
+}

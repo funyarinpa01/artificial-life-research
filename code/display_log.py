@@ -1,1 +1,1 @@
-def display(fieldfilename, organismsfilename):
+# def display(fieldfilename, organismsfilename):

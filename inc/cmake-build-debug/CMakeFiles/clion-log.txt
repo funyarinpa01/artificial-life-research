@@ -1,0 +1,41 @@
+"C:\Program Files\JetBrains\CLion 2020.1.2\bin\cmake\win\bin\cmake.exe" -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=C:/msys64/mingw64/bin/make.exe -DCMAKE_C_COMPILER=C:/msys64/mingw64/bin/gcc.exe -G "CodeBlocks - MinGW Makefiles" C:\Users\msemc\Documents\Pavlo\UCU\evolution_sim\artificial-life-research\inc
+-- The C compiler identification is GNU 10.2.0
+-- Check for working C compiler: C:/msys64/mingw64/bin/gcc.exe
+-- Check for working C compiler: C:/msys64/mingw64/bin/gcc.exe -- works
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Detecting C compile features
+-- Detecting C compile features - done
+CMake Warning at cmake/sanitizers/FindMSan.cmake:36 (message):
+  MemorySanitizer disabled for target because MemorySanitizer is supported
+  for Linux systems only.
+Call Stack (most recent call first):
+  cmake/sanitizers/FindSanitizers.cmake:39 (find_package)
+  CMakeLists.txt:49 (find_package)
+
+
+-- Try GNU UndefinedBehaviorSanitizer flag = [-g -fsanitize=undefined]
+-- Performing Test UBSan_FLAG_DETECTED
+-- Performing Test UBSan_FLAG_DETECTED - Failed
+CMake Warning at cmake/sanitizers/sanitize-helpers.cmake:150 (message):
+  UndefinedBehaviorSanitizer is not available for GNU compiler.  Targets
+  using this compiler will be compiled without UndefinedBehaviorSanitizer.
+Call Stack (most recent call first):
+  cmake/sanitizers/FindUBSan.cmake:36 (sanitizer_check_compiler_flags)
+  cmake/sanitizers/FindSanitizers.cmake:40 (find_package)
+  CMakeLists.txt:49 (find_package)
+
+
+-- Try  UndefinedBehaviorSanitizer flag = [-g -fsanitize=undefined]
+CMake Warning at cmake/sanitizers/sanitize-helpers.cmake:150 (message):
+  UndefinedBehaviorSanitizer is not available for compiler.  Targets using
+  this compiler will be compiled without UndefinedBehaviorSanitizer.
+Call Stack (most recent call first):
+  cmake/sanitizers/FindUBSan.cmake:36 (sanitizer_check_compiler_flags)
+  cmake/sanitizers/FindSanitizers.cmake:40 (find_package)
+  CMakeLists.txt:49 (find_package)
+
+
+-- Configuring done
+-- Generating done
+-- Build files have been written to: C:/Users/msemc/Documents/Pavlo/UCU/evolution_sim/artificial-life-research/inc/cmake-build-debug

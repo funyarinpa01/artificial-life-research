@@ -1,0 +1,16 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+C:/Users/msemc/Documents/Pavlo/UCU/evolution_sim/artificial-life-research/inc/fungera.c
+stdlib.h
+-
+stdint.h
+-
+stdio.h
+-
+
