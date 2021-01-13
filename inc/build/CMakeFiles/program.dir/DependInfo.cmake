@@ -4,7 +4,7 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_C
-  "/mnt/c/users/diana/documents/fungera_project/NFUNGERA_Copy/inc/fungera.c" "/mnt/c/users/diana/documents/fungera_project/NFUNGERA_Copy/inc/build/CMakeFiles/program.dir/fungera.c.o"
+  "/mnt/c/users/diana/documents/fungera_project/nfungera_copy/inc/fungera.c" "/mnt/c/users/diana/documents/fungera_project/nfungera_copy/inc/build/CMakeFiles/program.dir/fungera.c.o"
   )
 set(CMAKE_C_COMPILER_ID "GNU")
 
