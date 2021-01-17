@@ -12,6 +12,18 @@ class Parasite(FullOrganism):
         self.c = 0
 
     def find_cycle(self):
+        '''
+        choose the direction in which to look for the cycle
+        direction: >
+        |----------------------|
+        |          v <<<<<<    |
+        |          v      ^    | We will, hopefully,
+        |>START>   v      ^    | find something
+        |          v      ^    | life the looped
+        |          v      ^    | frame to the right
+        |          >>>>>>>^    |
+        |----------------------|
+        '''
         print('parasite is looking for cycle')
         self.c = (self.c+1)%4
         dx, dy = self.directions[self.c]
@@ -57,6 +69,10 @@ class Parasite(FullOrganism):
         print(self)
 
     def drop_child(self):
+        '''
+        look for free space and store its position\size
+        to the same registers host organism does
+        '''
         print('parasite dropping child')
         self.c = (self.c+1)%4
         startx, starty = self.position()
