@@ -9,14 +9,27 @@ sliderOutput.innerHTML = Math.floor((parseInt(slider.max) + parseInt(slider.min)
 const showInfobtn = document.getElementById("showInfobtn")
 const organismsInfoContainer = document.getElementById("organismsInfoContainer")
 const runBtn = document.getElementById("runbtn")
+let keeplooping = true
 
+
+function loop() {
+    if (!keeplooping) {
+        alert("Stop iterations")
+        return
+    }
+    runIterations(1)
+    window.setTimeout(loop, 0)
+}
+
+function alert_finish(iteration) {
+    alert(`Finished on ${iteration}`)
+}
 
 slider.oninput = function() {
     sliderOutput.innerHTML = this.value
 }
 
 function updateIteration(iteration) {
-    alert(`Finished on ${iteration} iteration`);
     iterationsInModal.textContent = iteration
 }
 
@@ -31,6 +44,7 @@ runBtn.addEventListener("click", () => {
 })
 
 document.addEventListener("keydown", (e) => {
+    keeplooping = false
     if (e.keyCode == 32) {
         simInfoModal.show()
     } else if (e.keyCode == 66) {
@@ -43,6 +57,9 @@ document.addEventListener("keydown", (e) => {
     } else if (e.keyCode == 65) {
         runIterations(5000);
     } else if (e.keyCode == 87) {
-        runIterations(30000)
+        runIterations(15000)
+    } else if (e.keyCode == 67) {
+        keeplooping = true
+        loop()
     }
 })

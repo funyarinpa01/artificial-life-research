@@ -1122,9 +1122,12 @@ int run(size_t iterations_to_run) {
 	print_queue(&q);
 	if (iterations_to_run > 1) {
 		EM_ASM({
-			updateIteration($0);
+			alert_finish($0);
 		}, iteration);
 	}
+	EM_ASM({
+		updateIteration($0);
+	}, iteration);
 	get_queue_info(&q);
 	return 0;
 }
