@@ -2,6 +2,14 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <time.h>
+#include <ncurses.h>
+
+#define STATUS_NCOLS 32
+#define CTRL_NROWS 4
+#define NCELLS 512
+#define NPROPERTIES 20
+
+void my_mvwaddstr(WINDOW *win, int y, int x, char *s);
 
 int MAX_N_OF_ERRORS = 5000;
 int MAX_ITERS_WITHOUT_REPRODUCTION = 100000;
@@ -50,7 +58,10 @@ typedef struct {
 	int child_width;
 	int child_height;
 	int children;
+	bool is_selected;
 } organism;
+
+void refresh_status_subwin(WINDOW *status_win, organism *o, int begin_i, int begin_j);
 
 typedef struct {
 	int top;
@@ -59,6 +70,7 @@ typedef struct {
 	organism* organisms;
 } table_of_organisms;
 
+void refresh_mem_win(WINDOW *mem_win, int mem_nrows, int mem_ncols, array *arr, int begin_i, int begin_j, table_of_organisms *table);
 
 int kill_organism(organism org, array* memory);
 
@@ -106,13 +118,16 @@ void update_queue(table_of_organisms* table, array* memory) {
 }
 
 int append_queue(table_of_organisms* table, organism* org) {
+//	printf("pushing into queue Organism %d\n", org->id);
 	if (table->top == table->size) {
 		return -1;
 	}
 	table->organisms_order[table->top] = table->top;
+//	printf("appending, table top is %d (%d)\n", table->top, table->organisms_order[table->top]);
 	table->organisms[table->top] = *org;
 	table->top++;
-	printf("Q %d %d %d %d %d %d|", org->id, org->parent_id, org->startx, org->starty, org->width, org->height);
+	//print_queue(q);
+//	printf("Q %d %d %d %d %d %d|", org->id, org->parent_id, org->startx, org->starty, org->width, org->height);
 	return 0;
 }
 
@@ -253,11 +268,13 @@ int organism_create(organism* org, int startx, int starty, int width, int height
 	org->childx = 0;
 	org->childy = 0;
 	org->children = 0;
+	org->is_selected = false;
 	append_queue(table, org);
 	return 0;
 }
 
 void move_organism_pointer(organism* org) {
+	//printf("moving organism %d by (%d %d)\n", org->id, org->deltax, org->deltay);
 	org->ptrx += org->deltax;
 	org->ptry += org->deltay;
 }
@@ -265,23 +282,38 @@ void move_organism_pointer(organism* org) {
 void print_array(array* arr) {
 	for (int i = 0; i < arr->size; i++) {
 		for (int j = 0; j < arr->size; j++) {
-			printf("%c", commands[arr->content[i*arr->size + j] >> 2]);
+//			printf("%c", commands[arr->content[i*arr->size + j] >> 2]);
 		}
-		printf("\n");
+//		printf("\n");
 	}
-	printf("\n");
+//	printf("\n");
 }
 
 void print_array_mask(array* arr) {
 	for (int i = 0; i < arr->size; i++) {
 		for (int j = 0; j < arr->size; j++) {
-			printf("%d", 3 & arr->content[i*arr->size + j]);
+//			printf("%d", 3 & arr->content[i*arr->size + j]);
 		}
-		printf("\n");
+//		printf("\n");
 	}
-	printf("\n");
+//	printf("\n");
 }
 
+
+void print_field(array* arr, organism* org) {
+	for (int i = 0; i < arr->size; i++) {
+		for (int j = 0; j < arr->size; j++) {
+			if ((org->ptrx + org->startx == i) && (org->ptry + org->starty == j)) {
+				//printf("#");
+			}
+			else {
+				//printf("%c", commands[arr->content[i*arr->size + j] >> 2]);
+			}
+		}
+		//printf("\n");
+	}
+	//printf("\n");
+}
 
 int array_create(array* arr, int size) {
 	arr->size = size;
@@ -341,7 +373,6 @@ int memory_allocate(array* memory, int x, int y, int w, int h) {
 			memory->content[i*memory->size+j] |= 1;
 		}
 	}
-	printf("ML %d %d %d %d|", x, y, w, h);
 	return 0;
 }
 
@@ -358,7 +389,6 @@ int memory_activate(array* memory, int x, int y, int w, int h) {
 			memory->content[i*memory->size+j] |= 2;
 		}
 	}
-	printf("MA %d %d %d %d|", x, y, w, h);
 	return 0;
 }
 
@@ -371,7 +401,6 @@ int memory_free(array* memory, int x, int y, int w, int h) {
 			memory->content[i*memory->size+j] ^= 3 & memory->content[i*memory->size+j];
 		}
 	}
-	printf("MF %d %d %d %d|", x, y, w, h);
 	return 0;
 }
 
@@ -413,7 +442,6 @@ int array_set(array* arr, int x, int y, char c) {
 	}
 	int index = x*arr->size + y;
 	arr->content[index] = c;
-	printf("MS %d %d %d %d|", x, y, command_code, cell_type);
 	return 0;
 }
 
@@ -426,7 +454,7 @@ int array_set_command(array* arr, int x, int y, int code) {
 	}
 	int index = x*arr->size + y;
 	arr->content[index] = (code << 2) + (3 & arr->content[index]);
-	printf("MW %d %d %c|", x, y, commands[code]);
+//	printf("MW %d %d %c|", x, y, commands[code]);
 	return 0;
 }
 
@@ -841,7 +869,6 @@ int life(array* memory, organism* org, table_of_organisms* table) {
 	if (org->reproduction_cycle > MAX_ITERS_WITHOUT_REPRODUCTION) {
 		org->errors += MAX_N_OF_ERRORS;
 	}
-	printf("O %d %d %d %c %d|", org->id, org->ptrx, org->ptry, command, code==0);
 	return 0;
 }
 
@@ -880,6 +907,8 @@ int radiation(array* memory) {
 	return 0;
 }
 
+int ncycle = 0;
+
 int cycle(table_of_organisms* table, array* memory, int i) {
 	for (int top = table->top-1; top > -1; top--) {
 		life(memory, &(table->organisms[table->organisms_order[top]]), table);
@@ -888,34 +917,238 @@ int cycle(table_of_organisms* table, array* memory, int i) {
 		radiation(memory);
 	}
 	update_queue(table, memory);
-	printf("\n");
+	ncycle++;
 }
 
 int main() {
-	int MAX_N_OF_ORGANISMS = 10000;
+	int MAX_N_OF_ORGANISMS = 50000;
 	table_of_organisms TABLE;
 	table_create(&TABLE, MAX_N_OF_ORGANISMS);
 
 	srand(time(0));
 	array arr;
-	array_create(&arr, 300);
+	array_create(&arr, NCELLS);
 
 	// Initialize the ancestor
-    write_chunck_from_file(&arr, 1, 1, 23, 17, "initial.gen");
+    write_chunck_from_file(&arr, NCELLS/2, NCELLS/2, 23, 17, "initial.gen");
 
-    organism cur_o;
-    organism_create(&cur_o, 1, 1, 17, 23, 0, &TABLE);
+    organism org;
+    organism_create(&org, NCELLS/2, NCELLS/2, 17, 23, 0, &TABLE);
 
 	int n;
 
+	organism *cur_o;
+	int j = 0;
+    int c;
+	int begin_i, begin_j;
+	int max_y, max_x;
+    int mem_nrows, mem_ncols;
+    char *s[NPROPERTIES] = {"Filename:         Untitled", "begin_i, begin_j:", "Cycle", "ID:", "Parent's ID:", "BP:", "Size:", "Vector of mov:", "IP:", "A:", "B:",
+                            "C:", "D:", "Stack:", "Top of stack:", "Errors:", "Repr cycle:",
+                            "Child's BP:", "Child's size:", "Nchildren:"};
+    int i = 0;
+    bool is_running = false;
 
-	for (int i = 0; ((i < 1000000) && (TABLE.top != 0)); i++) {
-		n = TABLE.top;
-		cycle(&TABLE, &arr, i);
+	initscr();
+
+	cbreak();
+	noecho();
+	nodelay(stdscr, true);
+	start_color();
+
+	init_pair(1, COLOR_BLACK, COLOR_RED);
+	init_pair(2, COLOR_BLACK, COLOR_BLUE);
+	init_pair(3, COLOR_BLACK, COLOR_MAGENTA);
+
+	getmaxyx(stdscr, max_y, max_x);
+
+    WINDOW *status_win = newwin(max_y-CTRL_NROWS, STATUS_NCOLS, 0, 0);
+    refresh();
+    box(status_win, 0, 0);
+    mvwaddstr(status_win, 0, 1, " Status ");
+    for (i = 0; i < 14; i++) {
+        mvwaddstr(status_win, i+1, 2, s[i]);
+    }
+	for ( ; i < NPROPERTIES; i++) {
+		mvwaddstr(status_win, i+5, 2, s[i]);
+	}
+    wnoutrefresh(status_win);
+
+    cur_o = &TABLE.organisms[j];
+	cur_o->is_selected = true;
+    WINDOW *status_subwin = newwin(max_y-CTRL_NROWS-3, STATUS_NCOLS-21, 2, 20);
+
+    mem_nrows = max_y - CTRL_NROWS;
+    mem_ncols = max_x - STATUS_NCOLS;
+	WINDOW *mem_win = newwin(mem_nrows, mem_ncols, 0, STATUS_NCOLS);
+	begin_i = (NCELLS-mem_nrows+18) / 2;
+	begin_j = (NCELLS-mem_ncols+24) / 2;
+
+    WINDOW *ctrl_win = newwin(CTRL_NROWS, max_x, max_y-CTRL_NROWS, 0);
+    box(ctrl_win, 0, 0);
+    mvwaddstr(ctrl_win, 0, 1, " Controls ");
+    my_mvwaddstr(ctrl_win, 1, 2, "\002W\003 Up\t\002S\003 Down\t\002A\003 Left\t\002D\003 Right\t\002Z\003 Previous organism\t\002X\003 Next organism");
+    my_mvwaddstr(ctrl_win, 2, 2, "\002P\003 Pause\t\002E\003 Execute cycle (only if app is paused)\t\002K\003 Save state\t\002L\003 Load state");
+    wnoutrefresh(ctrl_win);
+
+	for (i = 0; ((i < 10000000) && (TABLE.top != 0)); i++) {
+	    // While there is input
+        while ((c = getch()) != ERR || !is_running) {
+			if (!is_running) {
+				refresh_status_subwin(status_subwin, cur_o, begin_i, begin_j);
+				refresh_mem_win(mem_win, mem_nrows, mem_ncols, &arr, begin_i, begin_j, &TABLE);
+				doupdate();
+			}
+            switch (c) {
+                case 'w':
+                case 'W':
+                    if (begin_i >= 0) {
+                        begin_i -= 1;
+                    }
+                    break;
+                case 's':
+                case 'S':
+                    if (begin_i <= NCELLS-mem_nrows)
+                    begin_i += 1;
+                    break;
+                case 'a':
+                case 'A':
+                    if (begin_j >= 0) {
+                        begin_j -= 1;
+                    }
+                    break;
+                case 'd':
+                case 'D':
+                    if (begin_j <= NCELLS-mem_ncols) {
+                        begin_j += 1;
+                    }
+                    break;
+                case 'z':
+                case 'Z':
+                    if (j > 0) {
+						cur_o->is_selected = false;
+                        cur_o = &TABLE.organisms[--j];
+						cur_o->is_selected = true;
+                    }
+                    break;
+                case 'x':
+                case 'X':
+                    if (j < TABLE.top-1) {
+						cur_o->is_selected = false;
+                        cur_o = &TABLE.organisms[++j];
+						cur_o->is_selected = true;
+                    }
+                    break;
+				case 'e':
+				case 'E':
+					n = TABLE.top;
+					cycle(&TABLE, &arr, i);
+					break;
+                case 'p':
+                case 'P':
+                    is_running = !is_running;
+                default:
+                    break;
+            }
+        }
+        n = TABLE.top;
+        cycle(&TABLE, &arr, i);
+
+        refresh_status_subwin(status_subwin, cur_o, begin_i, begin_j);
+        refresh_mem_win(mem_win, mem_nrows, mem_ncols, &arr, begin_i, begin_j, &TABLE);
+        doupdate();
     }
 
+	endwin();
 
 	free(arr.content);
 	free(TABLE.organisms);
 	return 0;
+}
+
+void refresh_status_subwin(WINDOW *status_subwin, organism *o, int begin_i, int begin_j)
+{
+    int i;
+    int complex_properties[][2] = {
+            {o->starty, o->startx},
+            {o->width, o->height},
+            {o->deltay, o->deltax},
+			{o->starty+o->ptry, o->startx+o->ptrx},
+            {o->ay, o->ax},
+            {o->by, o->bx},
+            {o->cy, o->cx},
+            {o->dy, o->dx},
+    };
+	
+	werase(status_subwin);
+	mvwprintw(status_subwin, 0, 0, "%d, %d", begin_i, begin_j);
+	mvwprintw(status_subwin, 1, 0, "%d", ncycle);
+    mvwprintw(status_subwin, 2, 0, "%d", o->id);
+    mvwprintw(status_subwin, 3, 0, "%d", o->parent_id);
+    for (i = 0; i < 8; i++) {
+        mvwprintw(status_subwin, i+4, 0, "%d, %d", complex_properties[i][0], complex_properties[i][1]);
+    }
+	for (i = 0; i < o->stacktop; i++) {
+		mvwprintw(status_subwin, i+12, 0, "%d, %d", o->stacky[i], o->stackx[i]);
+	}
+	mvwprintw(status_subwin, 17, 0, "%d", o->stacktop);
+	mvwprintw(status_subwin, 18, 0, "%d", o->errors);
+	mvwprintw(status_subwin, 19, 0, "%d", o->reproduction_cycle);
+	mvwprintw(status_subwin, 20, 0, "%d, %d", o->childy, o->childx);
+	mvwprintw(status_subwin, 21, 0, "%d, %d", o->width, o->height);
+	mvwprintw(status_subwin, 22, 0, "%d", o->children);
+    wnoutrefresh(status_subwin);
+}
+
+void refresh_mem_win(WINDOW *mem_win, int mem_nrows, int mem_ncols, array *arr, int begin_i, int begin_j, table_of_organisms *table)
+{
+    int k, i, j;
+    int y, x;
+
+    for (y = 1; y < mem_nrows-1; y++) {
+        x = 1;
+        wmove(mem_win, y, x);
+        for ( ; x < mem_ncols-1; x++) {
+            waddch(mem_win, commands[array_get_command_code(arr, begin_i+y, begin_j+x)]);
+        }
+    }
+    for (k = 0; k < table->top; k++) {
+        y = table->organisms[k].startx - begin_i;
+        x = table->organisms[k].starty - begin_j;
+        wattron(mem_win, (table->organisms[k].is_selected) ? COLOR_PAIR(3) : COLOR_PAIR(2));
+        for (i = 0; i < table->organisms[k].width; i++) {
+            for (j = 0; j < table->organisms[k].height; j++) {
+                mvwaddch(mem_win, y + i, x + j, commands[array_get_command_code(arr, table->organisms[k].startx + i, table->organisms[k].starty + j)]);
+            }
+        }
+        wattroff(mem_win, (table->organisms[k].is_selected) ? COLOR_PAIR(3) : COLOR_PAIR(2));
+        wattron(mem_win, COLOR_PAIR(1));
+        mvwaddch(mem_win, y+table->organisms[k].ptrx, x+table->organisms[k].ptry, commands[array_get_command_code(arr, table->organisms[k].startx+table->organisms[k].ptrx, table->organisms[k].starty+table->organisms[k].ptry)]);
+        wattroff(mem_win, COLOR_PAIR(1));
+	}
+	box(mem_win, 0, 0);
+	mvwaddstr(mem_win, 0, 1, " Memory ");
+	wnoutrefresh(mem_win);
+}
+
+void my_mvwaddstr(WINDOW *win, int y, int x, char *s)
+{	
+	wmove(win, y, x);
+    while (*s) {
+        switch (*s) {
+            case '\002':
+                wattron(win, A_STANDOUT);
+                break;
+            case '\003':
+                wattroff(win, A_STANDOUT);
+                break;
+			case '\t':
+				x = getcurx(win);
+				wmove(win, y, (x+4) & -4);
+            default:
+                waddch(win, *s);
+                break;
+        }
+        s++;
+    }
 }
