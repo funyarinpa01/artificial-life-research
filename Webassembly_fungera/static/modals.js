@@ -1,5 +1,6 @@
 
 const simInfoModal = new bootstrap.Modal(document.getElementById('simInfo'))
+const treeContainer = new bootstrap.Modal(document.getElementById("tree"))
 console.log("init modal")
 const slider = document.getElementById("sliderIteration")
 const sliderOutput = document.getElementById("sliderOutput")
@@ -25,11 +26,23 @@ showInfobtn.addEventListener("click", () => {
 
 runBtn.addEventListener("click", () => {
     simInfoModal.hide()
-    setTimeout(() => {runIterations(parseInt(slider.value))}, 300)
+    //runIterations(parseInt(slider.value))
+    window.setTimeout(() => {runIterations(parseInt(slider.value))}, 300)
 })
 
-document.addEventListener("keyup", (e) => {
+document.addEventListener("keydown", (e) => {
     if (e.keyCode == 32) {
         simInfoModal.show()
+    } else if (e.keyCode == 66) {
+        treeContainer.show()
+        display(organismsMap)
+    } else if (e.keyCode == 68) {
+        runIterations(1);
+    } else if (e.keyCode == 83) {
+        runIterations(5000);
+    } else if (e.keyCode == 65) {
+        runIterations(5000);
+    } else if (e.keyCode == 87) {
+        runIterations(30000)
     }
 })

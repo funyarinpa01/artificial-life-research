@@ -70,9 +70,8 @@ void queue_create(queue* q) {
 }
 
 void print_queue(queue* q) {
-	printf("printing queue\n %c", 'a');
 	for (int j = 0; j < q->top; j++) {
-		printf("%d id %d of size [%d, %d] at (%d %d) errors %d\n", j, q->organisms[j].id, q->organisms[j].width, q->organisms[j].height, q->organisms[j].startx, q->organisms[j].starty, q->organisms[j].errors);
+		printf("%d id %d at (%d %d) errors %d\n", j, q->organisms[j].id, q->organisms[j].startx, q->organisms[j].starty, q->organisms[j].errors);
 	}
 }
 
@@ -282,7 +281,7 @@ void move(organism* org) {
 void print_array(array* arr) {
 	for (int i = 0; i < arr->size; i++) {
 		for (int j = 0; j < arr->size; j++) {
-			printf("%c", commands[arr->content[i*arr->size + j] >> 2]);
+			printf("%c\n", commands[arr->content[i*arr->size + j] >> 2]);
 		}
 		printf("\n");
 	}
@@ -292,7 +291,7 @@ void print_array(array* arr) {
 void print_array_mask(array* arr) {
 	for (int i = 0; i < arr->size; i++) {
 		for (int j = 0; j < arr->size; j++) {
-			printf("%d", 3 & arr->content[i*arr->size + j]);
+			printf("%d\n", 3 & arr->content[i*arr->size + j]);
 		}
 		printf("\n");
 	}
@@ -391,7 +390,7 @@ int memory_activate(array* memory, int x, int y, int w, int h) {
 			memory->content[i*memory->size+j] |= 2;
 		}
 	}
-	printf("MA %d %d %d %d|", x, y, w, h);
+	//printf("MA %d %d %d %d|", x, y, w, h);
 	return 0;
 }
 
@@ -404,7 +403,7 @@ int memory_free(array* memory, int x, int y, int w, int h) {
 			memory->content[i*memory->size+j] ^= 3 & memory->content[i*memory->size+j];
 		}
 	}
-	//printf("MF %d %d %d %d|", x, y, w, h);
+	printf("MF %d %d %d %d|", x, y, w, h);
 	return 0;
 }
 
@@ -688,6 +687,7 @@ int write_instance(array* memory, organism* org) {
 		//printf("unknown command %d\n", c);
 		return -1;
 	}
+	//printf("command %c\n", commands[c]);
 	//c = commands[c];
 	if (!(array_set_command(memory, addressx, addressy, c) == 0)) {
 		return -1;
@@ -1055,50 +1055,6 @@ int radiation(array* memory) {
 }
 
 
-
-
-
-// typedef struct {
-// 	queue* q;
-// 	array* arr;
-// 	organism* org;
-// 	size_t* i;
-// } userData;
-
-// void init_userData(userData* data, queue* q, array* arr, organism* org, size_t* i) {
-// 	data->q = q;
-// 	data->arr = arr;
-// 	data->org = org;
-// 	data->i = i;
-// }
-
-// EMSCRIPTEN_KEEPALIVE
-// EM_BOOL one_iteration(userData* data) {
-// 	organism *org = data->org;
-// 	queue *q = data->q;
-// 	array *arr = data->arr;
-// 	size_t *i = data->i;
-
-// 	size_t top = 0;
-// 	size_t n = q->top;
-// 	printf("\n\nITERATION %zu\n", *i);
-// 	while (top < n) {
-// 		//get_queue(&q, &O, top);
-// 		if (get_queue(q, org, top) == 0) {
-// 			// print_organism(&org);
-// 			life(arr, org, q);
-// 			q->organisms[top] = *org;
-// 		}
-// 		top++;
-// 	}
-// 	update_queue(q);
-// 	(*i)++;
-// 	EM_ASM({
-// 		updateIteration($0);
-// 	}, *i);
-// 	return EM_TRUE;
-// }
-
 array arr;
 organism org; 
 queue q;
@@ -1108,23 +1064,28 @@ size_t iteration = 0;
 // id, startX, startY, width, height, ptrx, ptry, deltaX, deltaY,
 //     ax, ay, bx, by, cx, cy, dx, dy, stackTop, errors
 EMSCRIPTEN_KEEPALIVE
-void get_queue_info(queue *q) {
+void get_queue_info(queue *queue) {
 	organism *o;
-	for (size_t i = 0; i < q->top; i++) {
-		if (get_queue(q, o, i) == 0) {
+	int n = queue->top - 1;
+	for (int i = n; i >= 0; i--) {
+		if (get_queue(queue, o, i) == 0) {
 			EM_ASM({
-				updateDOMOrganisms($0, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+				newIds.add($0);
+				updateDOMOrganisms($0, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13);
 			}, o->id, o->startx, o->starty, o->width, o->height, o->ptrx, o->ptry, o->deltax, o->deltay, o->stacktop,
-			o->errors, o->reproduction_cycle, o->parent_id);
+			o->errors, o->reproduction_cycle, o->parent_id, iteration);
 		}
 		// registers not added
 	}
+	EM_ASM({
+		clearDead(newIds, organismsMap);
+	});
 }
 
 EMSCRIPTEN_KEEPALIVE
 int main() {
 	srand(time(0));
-	array_create(&arr, 100);
+	array_create(&arr, 500);
 	write_chunck_from_file(&arr, 24, 18, 23, 17, "initial.gen");
 	organism_create(&org, 24, 18, 23, 17, 0);
 
@@ -1138,19 +1099,18 @@ int main() {
 
 EMSCRIPTEN_KEEPALIVE
 int run(size_t iterations_to_run) {
-	size_t top, n, i = iteration;
+	size_t i = iteration;
 	while (iteration < i + iterations_to_run) {
-		top = 0;
-		n = q.top;
+		int j = q.top - 1;
 		//printf("\n\nITERATION %zu\n", iteration);
-		while (top < n) {
+		while (j >= 0) {
 			//get_queue(&q, &O, top);
-			if (get_queue(&q, &org, top) == 0) {
+			if (get_queue(&q, &org, j) == 0) {
 				//print_organism(&org);
 				life(&arr, &org, &q);
-				q.organisms[top] = org;
+				q.organisms[j] = org;
 			}
-			top++;
+			j--;
 		}
 		update_queue(&q, &arr);
 		iteration++;
@@ -1158,10 +1118,13 @@ int run(size_t iterations_to_run) {
 			radiation(&arr);
 		}
     }
+	//printf("Quuee top:%d\n", q.top);
 	print_queue(&q);
-	EM_ASM({
-		updateIteration($0);
-	}, iteration);
+	if (iterations_to_run > 1) {
+		EM_ASM({
+			updateIteration($0);
+		}, iteration);
+	}
 	get_queue_info(&q);
 	return 0;
 }

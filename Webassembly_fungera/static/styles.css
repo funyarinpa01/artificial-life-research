@@ -11,13 +11,13 @@ body.modal-open {
 
 #simulation {
     position: relative;
-    width: 2000px;
+    width: 10000px;
     /* z-index: -1; */
 }
 
 
 .row {
-    width: 2000px;
+    width: 10000px;
     height:20px;
 }
 
@@ -38,6 +38,14 @@ body.modal-open {
 
 .markedRed {
     background-color: red;
+}
+
+.markedGreen {
+    background-color: rgb(45, 223, 53) !important;
+}
+
+.markedGrey {
+    background-color: rgb(142, 150, 149);
 }
 
 #svgContainer {
@@ -70,3 +78,39 @@ body.modal-open {
 .popover {
     white-space: pre-line;    
 }
+
+
+/* 
+tree
+*/
+
+
+.node circle, .node rect {
+    fill: #fff;
+    stroke-width: 1.5px;
+  }
+  
+  .decade circle {
+    fill: none;
+    stroke: lightgrey;
+    stroke-width: 0.5px;
+  }
+  
+  .node {
+    font: 10px sans-serif;
+  }
+  
+  .decade {
+    font: 8px sans-serif;
+  }
+  
+  .title {
+    font: 12px sans-serif;
+  }
+  
+  .link {
+    fill: none;
+    stroke: #ccc;
+    stroke-width: 1.5px;
+  }
+  
